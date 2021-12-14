@@ -17,10 +17,11 @@ Schooling::Replicate() {
 	Initialize(new Schooling());
 	
 		SetClock(NormalAging,T);
-		Actions			(school = new ActionVariable("Continue",Environment));//d in the paper-- remember this choice will be conditional on entering on a state variable I, if I = 0 then d = 1, else if I = 1 then d = 1 or 0
+		Actions			(school = new BinaryChoice("Continue"));//d in the paper-- remember this choice will be conditional on entering on a state variable I, if I = 0 then d = 1, else if I = 1 then d = 1 or 0
 		ExogenousStates (shocks = new MVNvectorized("eps", ArbDraws,Mcomp,{zeros(Mcomp,1),vech(chol)}));
-		EndogenousStates(S = ValuesCounters("totSch",school,maxCounts));
+		EndogenousStates(S = new ActionCounter("totSch",maxS,school,1));
 		GroupVariables	(v = new RandomEffect("v",Types, vprob) );
+		SetDelta(0.95);
 	    
 		
 
