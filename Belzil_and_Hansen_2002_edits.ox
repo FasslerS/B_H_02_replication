@@ -58,7 +58,7 @@ Schooling::Utility(){
 	print(currSch);
  /* Work Utility */	 //I need to fix these utilities...	
     ln_w = pars[LogWage] * (Exper|Exper^2) + vcoef*CV(v) + AV(shocks)';
-    ln_e = pars[Employ] * (1|currSch[1]|Exper|Exper^2) + AV(shocks)';
+    ln_e = pars[Employ] * (1|currSch|Exper|Exper^2) + AV(shocks)';
     WorkUtil = ln_w + ln_e;
 
 /* School Utility */  //need to add in heterogenous ability v
