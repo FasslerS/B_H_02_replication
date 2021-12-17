@@ -1,8 +1,11 @@
-#import "Belzil_and_Hansen_2002_edits"
+﻿#import "Belzil_and_Hansen_2002_edits"
 
 main(){
 	Schooling::Create();
-	VISolve();
+//	VISolve();
+decl vmax = new ValueIteration();
+	vmax.Volume = LOUD;               //V(θ) printed when computed
+	vmax -> Solve();
 
 
 

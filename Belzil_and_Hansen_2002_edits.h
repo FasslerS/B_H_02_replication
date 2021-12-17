@@ -49,7 +49,8 @@ struct Schooling : Bellman {
 				WorkUtil,//Work Utility
 				ln_w,//log wage at time t
 				ln_e,//log experience at time t
-				ln_zeta;   //School Utility at time t
+				ln_zeta,  //School Utility at time t
+				S;   
 				
 	static Replicate();
 	static Create();
