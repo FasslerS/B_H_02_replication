@@ -10,13 +10,19 @@ struct Schooling : Bellman {
 			  enum{F_educ,M_educ,FamInc,NucFam,Sib,Rur,Sou}
 			  enum{SevenToTen,Eleven,Twelve,Thirteen,Fourteen,Fifteen,Sixteen,SeventeenMore}
 
+	/*CF: My suggested style is to make integer constants enums. Keep const for real/matrix values */
+
+			  enum{ArbDraws = 15 , //Arbitrary number of draws for each type of epsilon shock
+				   maxS=16+6,//max Schooling Is it 22 or 16???
+				   maxT=65,//max Life
+				   Types = 6, //K types of individuals, each endowed with (v^w,v^zeta) (work,school) ability endowments
+				   Sch0 = 6
+				   }
+
 	static const decl
                              /*MOVED THESE BECAUSE THEY ARE CONSTANT */
-				        maxS=22,//max Schooling
-				        maxT=65,//max Life
 						maxCounts=<maxS,maxT>,
 						vectMaxT=<maxT;maxT>,
-						Types = 6, //K types of individuals, each endowed with (v^w,v^zeta) (work,school) ability endowments
    						Environment = {"sch","wrk"},
 						//uncorrelated shocks
 						pars = {
@@ -24,6 +30,9 @@ struct Schooling : Bellman {
 						<-2.8173,-.1309,-0.0158,.0001>,	//Employment params (Table 4)
 						<.0884,-.0029>// Wage params (Table 4)
 						},
+					/* CF: moved these so they are treated like other parameters */
+   	  					Zeta = 0.0749, // Probability of experiencing school disruption (from Table 2)
+					    discrate = 0.0299, //Discount Rate (from Table 2)
 
 						splines = {-0.0743,-0.0494,-1.1676,0.2486,1.4286,-0.1151,0.3001,-0.7227},
 
@@ -47,14 +56,15 @@ struct Schooling : Bellman {
 				school, //control variable (if d = 1 continue school, if d = 0 then leave school for work)
 				shocks, //epsilon shocks
 				WorkUtil,//Work Utility
-				ln_w,//log wage at time t
-				ln_e,//log experience at time t
-				ln_zeta,  //School Utility at time t
+				attend,
+				leave,
+				L,
+				Irupt,
 				S;   
 				
 	static Replicate();
 	static Create();
 		   Utility();
-		   //FeasibleActions();
+		   FeasibleActions();
 				
 }
