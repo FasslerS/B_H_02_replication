@@ -16,7 +16,7 @@ Schooling::Replicate() {
 		ExogenousStates (shocks = new MVNvectorized("eps", ArbDraws,Mcomp,{zeros(Mcomp,1),vech(chol)}));
 		EndogenousStates(
 			S = new ActionCounter("totSch",maxS,attend),
-			L = new LaggedAction("Left",leave),
+			L = new LaggedAction("Left",leave),	//Create a variable that tracks the previous value of action variable.
 			Irupt = new IIDBinary("Irupt", Zeta )  
 			);
 		L->MakeTerminal(1);
@@ -45,12 +45,12 @@ Schooling::Create() {
 
 Schooling::Utility(){
 	decl currSch= CV(S)+Sch0,
-		currE=0; // initialize 0 experience if leaving
-	decl
+		currE=0, // initialize 0 experience if leaving
 		ln_w,//log wage at time t
 		ln_e,//log experience at time t
-		ln_zeta  //School Utility at time t,
-		;
+		ln_zeta,  //School Utility at time t,
+		time, Eu_W1, Eu_W2, Eu_zeta1, Eu_zeta2,i;
+
  /* Work Utility */
 	ln_w = pars[LogWage] * (currE|currE^2) + vcoef[Wage][CV(v)] + AV(shocks)[Wage]';
 	if( currSch <10 )
@@ -63,37 +63,62 @@ Schooling::Utility(){
     ln_e = (-1)*(pars[Employ] * (1|currSch|currE|currE^2) + AV(shocks)[Employment]');
 	
     WorkUtil = sumr(ln_w + ln_e);
-	//println("WorkUtil: ",WorkUtil);
-	if (CV(L)==1)  { //return discounted expected lifetime utility
-		decl time, Eu;
-		Eu = zeros( (maxT-(I::t-1)), 1);
-		//print("Zero's matrix: ",Eu);
+	
+//	if (CV(Irupt)==1 && CV(attend)==0)  { //return discounted expected lifetime utility
+ 
+		/*CV LT Value of work, in period t+1*/
+		Eu_W1 = zeros( (maxT-(I::t)+1), 1);		
 		for (time = I::t;time<(maxT+1);++time){
-		//println("Current time: ", time);
-		//println("Time index: ",time-I::t);
-			Eu[time-I::t][] = ( beta^( time-(I::t+1) ) )*(
+			Eu_W1[time-I::t][] = ( beta^( time-(I::t) ) )*(
 			-exp( 0+0.5*(stdevs[Employ])^2 )
 			+ (-1)*( currSch*pars[Employ][Sch]
 			+  (currE+(time-I::t) )*pars[Employ][Exp]
 			+  ((currE+(time-I::t) )^2)*pars[Employ][SqrdExp])
 			     );
 			}
-		//println("Expected LT Utility: ",Eu);
-		return WorkUtil + sumc(Eu);
-		}
-	//Otherwise, still haven't left
-    //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
-	ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
-	//print(WorkUtil);
-	//println(v);
-	if (currSch < 10) 
-		ln_zeta += splines[SevenToTen]*currSch;
-    else if ( currSch>16 )
-		ln_zeta += splines[SeventeenMore]*currSch;
-    else
-		ln_zeta += splines[currSch-10]*currSch;
+		/*CV LT Value of work, in period t+2*/	
+		Eu_W2 = zeros( (maxT-(I::t)+2), 1);		
+		for (time = I::t;time<(maxT+1);++time){
+			Eu_W2[time-I::t][] = ( beta^( time-(I::t) ) )*(
+			-exp( 0+0.5*(stdevs[Employ])^2 )
+			+ (-1)*( currSch*pars[Employ][Sch]
+			+  (currE+(time-I::t) )*pars[Employ][Exp]
+			+  ((currE+(time-I::t) )^2)*pars[Employ][SqrdExp])
+			     );
+			}
+		
+		//return WorkUtil + beta*sumc(Eu);
+		//}
+   	 //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
 
-	return ln_zeta * CV(attend) /*+ (WorkUtil * CV(leave))'*/;
+		ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
+		if (currSch < 10) 
+			ln_zeta += splines[SevenToTen]*currSch;
+    	else if ( currSch>16 )
+			ln_zeta += splines[SeventeenMore]*currSch;
+    	else
+			ln_zeta += splines[currSch-10]*currSch;
+		if (I::t <maxS+1){
+		Eu_zeta1 = zeros(maxS-I::t+1, 1);
+		
+		for (time = I::t; time<maxS+1;++time){
+			
+			currSch += 1;
+				if (currSch < 10) 
+					ln_zeta += splines[SevenToTen]*currSch;
+    			else if ( currSch>16 )
+					ln_zeta += splines[SeventeenMore]*currSch;
+    			else
+					ln_zeta += splines[currSch-10]*currSch;
+			Eu_zeta1[time-I::t][] = ( beta^(time-I::t) )*( Zeta^(time-I::t) )*ln_zeta;
+
+		}
+	}
+		else
+			Eu_zeta1 = 0;
+	   /*Below is missing components*/
+	return ln_zeta + beta*( Zeta*sumc(Eu_W2) + (1-Zeta)*max( sumc(Eu_zeta1), WorkUtil + beta*sumc(Eu_W1) ) );
+	
    
 }
 
