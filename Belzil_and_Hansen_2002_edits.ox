@@ -16,7 +16,7 @@ Schooling::Replicate() {
 		ExogenousStates (shocks = new MVNvectorized("eps", ArbDraws,Mcomp,{zeros(Mcomp,1),vech(chol)}));
 		EndogenousStates(
 			S = new ActionCounter("totSch",maxS,attend),
-			L = new LaggedAction("Left",leave),
+			L = new LaggedAction("Left",leave),	//Create a variable that tracks the previous value of action variable.
 			Irupt = new IIDBinary("Irupt", Zeta )  
 			);
 		L->MakeTerminal(1);
@@ -25,11 +25,11 @@ Schooling::Replicate() {
 		
     }
 
-/*  IF YOU DEFINE THIS IT HAS TO RETURN VECTOR OF 0s ... CAN"T LEAVE IT BLANK */
+
 Schooling::FeasibleActions() {
  if (CV(L))  //if already left, must set both to 0
  	return (1-CV(leave)).*(1-CV(attend))   ;
- if (I::t==maxS-1) //Must leave, can't attend in last choice period
+ if (CV(S)==maxS-1) //Must leave, can't attend in last choice period
  	return CV(leave).*(1-CV(attend)) ;
  if (CV(Irupt)) // if interrupted can only do neither
   	return ( (1-CV(leave)).*(1-CV(attend)) ); 
@@ -38,72 +38,71 @@ Schooling::FeasibleActions() {
  }
 
 Schooling::Create() {
-	Initialize( new Schooling() );	
+	Initialize( /*1.0,*/ new Schooling() );	
 	Replicate();
 	CreateSpaces();
+	
 }
 
 Schooling::Utility(){
 	decl currSch= CV(S)+Sch0,
-		currE=0; // initialize 0 experience if leaving
-	decl
+		currE=0, // initialize 0 experience if leaving
 		ln_w,//log wage at time t
 		ln_e,//log experience at time t
-		ln_zeta  //School Utility at time t,
+		ln_zeta,//School Utility at time t,
+		phi1
 		;
- /* Work Utility */
-	ln_w = pars[LogWage] * (currE|currE^2) + vcoef[Wage][CV(v)] + AV(shocks)[Wage]';
+
+ /* Work Utility */		//move down to into if cv(l)
+	
+	
 	if( currSch <10 )
-		ln_w += splinesWages[SevenToTen]*currSch;
+		phi1 = splinesWages[SevenToTen]*currSch;
 	else if	( currSch>16 )
-		ln_w += splinesWages[SeventeenMore]*currSch;
-	else if (currSch = 11)
-		ln_w += splinesWages[Eleven]*currSch;
-	else if (currSch = 12)
-		ln_w += splinesWages[Twelve]*currSch;
-	else if (currSch = 13)
-		ln_w += splinesWages[Thirteen]*currSch;
-	else if (currSch = 14)
-		ln_w += splinesWages[Fourteen]*currSch;
-	else if (currSch = 15)
-		ln_w += splinesWages[Fifteen]*currSch;
-	else if (currSch = 16)
-		ln_w += splinesWages[Sixteen]*currSch;
+		phi1 = splinesWages[SeventeenMore]*currSch;
+	else
+		phi1 = splinesWages[currSch-10]*currSch;
+		
+	ln_w = phi1 + pars[LogWage] * (currE|currE^2) + vcoef[Wage][CV(v)] + AV(shocks)[Wage]';
     ln_e = (-1)*(pars[Employ] * (1|currSch|currE|currE^2) + AV(shocks)[Employment]');
 	
-    WorkUtil = sumr(ln_w + ln_e);
-	//println("WorkUtil: ",WorkUtil);
-	if (CV(L))  { //return discounted expected lifetime utility
-		decl time, Eu;
-		Eu = zeros( (maxT-(I::t-1)), 1);
-		//print("Zero's matrix: ",Eu);
-		for (time = I::t;time<(maxT+1);++time){
-		//println("Current time: ", time);
-		//println("Time index: ",time-I::t);
-			Eu[time-I::t][] = ( beta^( time-(I::t+1) ) )*(
-			-exp( 0+0.5*(stdevs[Employ])^2 )
-			+ (-1)*(currSch*pars[Employ][Sch]
-			+ ( currE+(time-I::t) )*pars[Employ][Exp]
-			+ ( (currE+(time-I::t) )^2)*pars[Employ][SqrdExp])
-			);
-			}
-		//println("Expected LT Utility: ",Eu);
-		return WorkUtil + sumc(Eu);
-		}
-	//Otherwise, still haven't left
-    //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
-	ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
-	//print(WorkUtil);
-	//println(v);
-	if (currSch < 10) 
-		ln_zeta += splines[SevenToTen]*currSch;
-    else if ( currSch>16 )
-		ln_zeta += splines[SeventeenMore]*currSch;
-    else
-		ln_zeta += splines[currSch-10]*currSch;
+    WorkUtil = ln_w + ln_e;
 
-	return ln_zeta * CV(attend) /*+ (WorkUtil * CV(leave))'*/;
+	if (CV(L)==0){
+	ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
+		if (currSch < 10) 
+			ln_zeta += splines[SevenToTen]*currSch;
+    	else if ( currSch>16 )
+			ln_zeta += splines[SeventeenMore]*currSch;
+    	else
+			ln_zeta += splines[currSch-10]*currSch;
+
+		if (CV(Irupt))
+			//println("ln_zeta: ", ln_zeta, " Time: ", I::t," Current Schooling: ", currSch);
+			return ln_zeta;	
+	//	println("ln_zeta*CV(attend) + (WorkUtil*CV(leave))", ln_zeta*CV(attend) + (WorkUtil*CV(leave)), " CV(leave): ", CV(leave));
+		return ln_zeta*CV(attend) + (WorkUtil*CV(leave));
+
+	}
+	
+		else { //return discounted expected lifetime utility
+			decl time, Eu;
+			//Eu = zeros( (maxT-(I::t-1)), 1);
+			Eu = 0;
+			currE =1;
+			for (time =0;time<(maxT- I::t);++time,++currE){
+				Eu += ( beta^( time ) )*(
+				(-1)*exp(pars[Employ]*(1|currSch|currE|currE^2)+ 0.5*sqr(stdevs[Employ]) )
+				+ phi1
+				+ currE*pars[LogWage][wageExp]
+				+ sqr(currE)*pars[LogWage][wageExpSqrd]);
+				//println("phi1: ",phi1)
+				;
+			}	  //print("Eu: ",Eu/*, ", Time: ", I::t,", Current Schooling: ", currSch, ", Current Experience: ", currE*/);
+			return /*WorkUtil +*/ Eu;
+		}
+   	 //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
+	
    
 }
-
 
