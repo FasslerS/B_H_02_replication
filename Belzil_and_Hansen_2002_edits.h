@@ -13,7 +13,7 @@ struct Schooling : Bellman {
 	/*CF: My suggested style is to make integer constants enums. Keep const for real/matrix values */
 
 			  enum{ArbDraws = 15 , //Arbitrary number of draws for each type of epsilon shock
-				   maxS=16+6,//max Schooling
+				   maxS=22-5,//max Schooling
 				   maxT=65,//max Life
 				   Types = 6, //K types of individuals, each endowed with (v^w,v^zeta) (work,school) ability endowments
 				   Sch0 = 6
