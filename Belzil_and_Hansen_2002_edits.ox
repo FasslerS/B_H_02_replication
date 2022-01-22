@@ -1,26 +1,20 @@
 #include "Belzil_and_Hansen_2002_edits.h"
 
 Schooling::Replicate() {
-	  decl Omega, chol, Exper;
-
-
-	 decl sig = unit(Mcomp);
-	  Omega = stdevs.*sig.*stdevs';
-	  chol = choleski(Omega);	
 		SetClock(NormalAging,maxT);   // Decision periods
 		
 		Actions			(
 			leave = new BinaryChoice("Leave"),   // 1-d in the paper
 			attend = new BinaryChoice("attend")
 			);//d in the paper-- remember this choice will be conditional on entering on a state variable I, if I = 0 then d = 1, else if I = 1 then d = 1 or 0
-		ExogenousStates (shocks = new MVNvectorized("eps", ArbDraws,Mcomp,{zeros(Mcomp,1),vech(chol)}));
+		ExogenousStates (shocks = new MVNvectorized("eps", ArbDraws,Mcomp,{zeros(stdevs),vech(diag(stdevs))}));
 		EndogenousStates(
+			Irupt = new IIDBinary("Irupt", Zeta ),
 			S = new ActionCounter("totSch",maxS,attend),
-			L = new LaggedAction("Left",leave),	//Create a variable that tracks the previous value of action variable.
-			Irupt = new IIDBinary("Irupt", Zeta )  
+			L = new LaggedAction("Left",leave)	//Create a variable that tracks the previous value of action variable.
 			);
 		L->MakeTerminal(1);
-		GroupVariables	(v = new RandomEffect("v",Types, vprob) );
+		GroupVariables	(v = new RandomEffect("v",Types, vprob[:Types-1]/sumc(vprob[:Types-1]) ) );
 		SetDelta(1/(1+discrate));	//CF: fixed
 		
     }
@@ -29,10 +23,10 @@ Schooling::Replicate() {
 Schooling::FeasibleActions() {
  if (CV(L))  //if already left, must set both to 0
  	return (1-CV(leave)).*(1-CV(attend))   ;
- if (CV(S)==maxS-1) //Must leave, can't attend in last choice period
- 	return CV(leave).*(1-CV(attend)) ;
+// if (CV(S)==maxS-1) //Must leave, can't attend in last choice period
+// 	return CV(leave).*(1-CV(attend)) ;
  if (CV(Irupt)) // if interrupted can only do neither
-  	return ( (1-CV(leave)).*(1-CV(attend)) ); 
+  	return ( (1-CV(leave)).*(1-CV(attend)) );
  return //if not interrupted, either leave OR attend but not both
  	CV(leave)+CV(attend).==1;
  }
@@ -69,18 +63,19 @@ Schooling::Utility(){
     WorkUtil = ln_w + ln_e;
 
 	if (CV(L)==0){
-	ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
-		if (currSch < 10) 
+
+	   ln_zeta = sumc(pars[SchlUtil]') + vcoef[School][CV(v)] + AV(shocks)[School];
+		if (currSch < 10)
 			ln_zeta += splines[SevenToTen]*currSch;
     	else if ( currSch>16 )
 			ln_zeta += splines[SeventeenMore]*currSch;
     	else
 			ln_zeta += splines[currSch-10]*currSch;
 
-		if (CV(Irupt))
-			//println("ln_zeta: ", ln_zeta, " Time: ", I::t," Current Schooling: ", currSch);
+		if (CV(Irupt)) {
 			return ln_zeta;	
-	//	println("ln_zeta*CV(attend) + (WorkUtil*CV(leave))", ln_zeta*CV(attend) + (WorkUtil*CV(leave)), " CV(leave): ", CV(leave));
+            }
+
 		return ln_zeta*CV(attend) + (WorkUtil*CV(leave));
 
 	}
@@ -102,7 +97,5 @@ Schooling::Utility(){
 			return /*WorkUtil +*/ Eu;
 		}
    	 //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
-	
-   
-}
 
+}
