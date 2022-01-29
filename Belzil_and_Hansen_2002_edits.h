@@ -12,7 +12,7 @@ struct Schooling : Bellman {
 
 	/*CF: My suggested style is to make integer constants enums. Keep const for real/matrix values */
 
-			  enum{ArbDraws = 15 , //15 Arbitrary number of draws for each type of epsilon shock
+			  enum{ArbDraws = 30 , //15 Arbitrary number of draws for each type of epsilon shock
 				   maxT=50,// 50?  Start at 16? 65 max Life
 				   Sch0 = 6,
 				   maxS=16, //22-5 max Schooling

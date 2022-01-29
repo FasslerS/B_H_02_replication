@@ -11,9 +11,9 @@ Schooling::Replicate() {
 		EndogenousStates(
 			Irupt = new IIDBinary("Irupt", Zeta ),
 			S = new ActionCounter("totSch",maxS,attend),
-			L = new LaggedAction("Left",leave)	//Create a variable that tracks the previous value of action variable.
+			L = new LaggedAction("Left",leave)	//Create a variable that tracks the previous value of action variable.				
 			);
-		L->MakeTerminal(1);
+		//L->MakeTerminal(1);
 		GroupVariables	(v = new RandomEffect("v",Types, vprob[:Types-1]/sumc(vprob[:Types-1]) ) );
 		SetDelta(1/(1+discrate));	//CF: fixed
 		
@@ -80,22 +80,32 @@ Schooling::Utility(){
 
 	}
 	
-		else { //return discounted expected lifetime utility
+	/*	else { //return discounted expected lifetime utility
 			decl time, Eu;
-			//Eu = zeros( (maxT-(I::t-1)), 1);
+			
 			Eu = 0;
 			currE =1;
 			for (time =0;time<(maxT- I::t);++time,++currE){
 				Eu += ( beta^( time ) )*(
-				(-1)*exp(pars[Employ]*(1|currSch|currE|currE^2)+ 0.5*sqr(stdevs[Employ]) )
+				(-1)*exp(pars[Employ]*(0|currSch|currE|currE^2)+ 0.5*sqr(stdevs[Employ]) )
 				+ phi1
 				+ currE*pars[LogWage][wageExp]
 				+ sqr(currE)*pars[LogWage][wageExpSqrd]);
-				//println("phi1: ",phi1)
+				
 				;
-			}	  //print("Eu: ",Eu/*, ", Time: ", I::t,", Current Schooling: ", currSch, ", Current Experience: ", currE*/);
-			return /*WorkUtil +*/ Eu;
+			}	 
+			return /*WorkUtil +*/ Eu;		*/
+
+		else { //avg earnings in current state
+			decl Eu;
+			Eu = (-1)*exp(pars[Employ]*(0|currSch|CV(L)|CV(L)^2)+ 0.5*sqr(stdevs[Employ]) )
+				+ phi1
+				+ CV(L)*pars[LogWage][wageExp]
+				+ sqr(CV(L))*pars[LogWage][wageExpSqrd];
+			
+		
+			return  Eu;
 		}
-   	 //ln_zeta = pars[SchlUtil]'*X[F_educ:Sou] +  shocks[0];
+   	 
 
 }
