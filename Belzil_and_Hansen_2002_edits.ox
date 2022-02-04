@@ -13,12 +13,8 @@ Schooling::Replicate() {
 		    L->MakeTerminal(1);
             Xper = 0;
         #else
-		    L = new LaggedAction("Left",leave);	//Create a variable that tracks the previous value of action variable.				
-//            L = new PermanentChoice("Left",leave);
-            Xper = new Freeze(
-                    new StateCounter("Xper",maxT,L)
-                    ,notLeft)
-                    ;
+            L = new PermanentChoice("Left",leave);
+            Xper = new Freeze(new StateCounter("Xper",maxT,L),notLeft);
         #endif;
 		Irupt = new IIDBinary("Irupt", Zeta ),
 		S = new Freeze(new ActionCounter("totSch",maxS,attend),L);
@@ -33,8 +29,7 @@ Schooling::Replicate() {
     }
 /** shocks have no effect after leaving.  Avoid summing over them.**/
 Schooling::IgnoreExogenous() {
- return CV(L);
-    return 0;
+ return CV(L);  // 0 will use eps everywhere
     }
 Schooling::Reachable() {
     return CV(S)+CV(Xper)<= I::t;

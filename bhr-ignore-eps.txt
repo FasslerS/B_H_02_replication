@@ -1,13 +1,14 @@
 
-Ox Professional version 8.10 (Windows_64/U/MT) (C) J.A. Doornik, 1994-2019
-No debug mode in this version
+Ox Professional version 8.10 (Windows_64/U/MT) (C) J.A. Doornik,
+1994-2019 No debug mode in this version
 
  niqlow version 4.00. Copyright (C) 2011-2020 Christopher Ferrall.
-Execution of niqlow implies acceptance of its free software License (niqlow/niqlow-license.txt).
-Log file directory: './'. Time stamp: -4-02-2022-13-00-42.
+Execution of niqlow implies acceptance of its free software License
+(niqlow/niqlow-license.txt). Log file directory: './'. Time stamp:
+-4-02-2022-13-09-05.
 
 DP::Intialize is complete. Action and State spaces are empty.
- Log file name is: ./DP-DDP-4-02-2022-13-00-42.log
+ Log file name is: ./DP-DDP-4-02-2022-13-09-05.log
 -------------------- DP Model Summary ------------------------
 0. USER BELLMAN CLASS
     Schooling | Bellman
@@ -50,10 +51,7 @@ DP::Intialize is complete. Action and State spaces are empty.
          Terminal          0
      Approximated      29918
 Index of first state by t (t=0..T-1)
-      0      1     13     37     77    137    221    333    477    657    877   1141   1453   1817
-      2237   2717   3261   3869   4541   5277   6077   6941   7869   8861   9917  11037  12221
-      13469  14781  16157  17597  19101  20669  22301  23997  25757  27581  29469  31421  33437
-      35517  37661  39869  42141  44477  46877  49341  51869  54461  57117  59837
+      0      1     13     37     77    137    221    333    477    657    877   1141   1453   1817   2237   2717   3261   3869   4541   5277   6077   6941   7869   8861   9917  11037  12221  13469  14781  16157  17597  19101  20669  22301  23997  25757  27581  29469  31421  33437  35517  37661  39869  42141  44477  46877  49341  51869  54461  57117  59837
 
 
 6. FEASIBLE ACTION SETS
@@ -74,9 +72,9 @@ Index of first state by t (t=0..T-1)
 E
 
 -------------------- End of Model Summary ------------------------
-Phase :Initializing Increment:       1.56. Cumulative:         1.56
-Tracking all actions, endogenous state and auxiliary variables
-...... Predicted Moments for fixed group: 0
+Phase :Initializing Increment: 1.69. Cumulative: 1.69 Tracking all
+actions, endogenous state and auxiliary variables ...... Predicted
+Moments for fixed group: 0
     t       Leave      attend       Irupt      totSch        Left        Xper           E
     0      0.4245      0.5006      0.0749      0.0000      0.0000      0.0000      0.6761
     1      0.5375      0.4194      0.0749      0.5006      0.4245      0.0000      0.2416
