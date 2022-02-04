@@ -9,6 +9,7 @@ struct Schooling : Bellman {
 			  enum{School, Wage, Employment, Mcomp}
 			  enum{F_educ,M_educ,FamInc,NucFam,Sib,Rur,Sou}
 			  enum{SevenToTen,Eleven,Twelve,Thirteen,Fourteen,Fifteen,Sixteen,SeventeenMore}
+              enum{Spline1=10,Spline2=17}
 
 	/*CF: My suggested style is to make integer constants enums. Keep const for real/matrix values */
 
@@ -16,7 +17,7 @@ struct Schooling : Bellman {
 				   maxT=50,// 50?  Start at 16? 65 max Life
 				   Sch0 = 6,
 				   maxS=16, //22-5 max Schooling
-				   Types = 6 //6 K types of individuals, each endowed with (v^w,v^zeta) (work,school) ability endowments
+				   Types = 6 // K types of individuals, each endowed with (v^w,v^zeta) (work,school) ability endowments
 				   }
 
 	static const decl
@@ -52,20 +53,27 @@ struct Schooling : Bellman {
 						
 						
 	static decl
+                Earn,
+                ln_zeta0, ln_e0, ln_w0,
 				X, //Vector of initial family human capital endowment (need data for this)
 				v, // vector of individual heterogeneity (unobserved)
 				school, //control variable (if d = 1 continue school, if d = 0 then leave school for work)
 				shocks, //epsilon shocks
-				WorkUtil,//Work Utility
 				attend,
 				leave,
 				L,
+                Xper,
 				Irupt,
 				S;
 				
 	static Replicate();
 	static Create();
+    static notLeft();
+    static ExpectedEarn(xv);
+    static AuxEarn();
+           ThetaUtility();
 		   Utility();
 		   FeasibleActions();
-				
+           Reachable();
+		   IgnoreExogenous();		
 }
